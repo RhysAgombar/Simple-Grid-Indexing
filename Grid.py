@@ -50,6 +50,8 @@ for i in range (0, lines.shape[0] - 1):
 
         cv2.line(lineimg,(x1,y1),(x2,y2),(0,0,255),2)
 
+#tolerance = 200
+#
 #for s1, e1 in SEpoints:
 #    index = 0
 #    for s2, e2 in SEpoints:
@@ -57,22 +59,22 @@ for i in range (0, lines.shape[0] - 1):
 #        diffe = abs(e2 - e1)
 #
 #        if (np.array_equal(diffs,[0,0]) == False and np.array_equal(diffe,[0,0]) == False):
-#            if (diffs[0] < 10):
+#            if (diffs[0] < tolerance):
 #                SEpoints = np.delete(SEpoints,index, 0)
 #                break
-#            if (diffs[1] < 10):
+#            if (diffs[1] < tolerance):
 #                SEpoints = np.delete(SEpoints,index, 0)
 #                break
 #                
-#            if (diffe[0] < 10):
+#            if (diffe[0] < tolerance):
 #                SEpoints = np.delete(SEpoints,index, 0)
 #                break
-#            if (diffe[1] < 10):
+#            if (diffe[1] < tolerance):
 #                SEpoints = np.delete(SEpoints,index, 0)
 #                break
 #
 #        index += 1
-#            
+            
 
 #for x1,y1,x2,y2 in SEpoints:
 #    for index, (x3,y3,x4,y4) in enumerate(SEpoints):
