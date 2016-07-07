@@ -21,15 +21,45 @@ def intersection(a1,a2, b1,b2) :
 
 img = cv2.imread('grido.png')
 
-edges = cv2.Canny(img,50,200,apertureSize = 3)
+edges = cv2.Canny(img,50,300,apertureSize = 3)
 
 lineimg = np.zeros([img.shape[0],img.shape[1],img.shape[2]])
 
-lines = cv2.HoughLines(edges,2,np.pi/180,300)
+lines = cv2.HoughLines(edges,2,np.pi/180,250)
+
+rtolerance = 30
+#ttolerance = 250
+
+shape = lines.shape[0]
+i = 0
+
+while (i < shape):
+    j = 0
+    while (j < shape):
+        rho = lines[j][0][0]
+        theta = lines[j][0][1]
+
+        diffr = abs(lines[i][0][0] - rho)
+
+        if (lines[i][0][0] == rho and lines[i][0][1] == theta):
+            j = j
+        elif (diffr < rtolerance):
+            lines = np.delete(lines, j, 0)
+            shape-=1
+            j-=1
+            
+        j+=1
+    i+=1
+
+
+for i in range (0, lines.shape[0]):
+    print lines[i]
+
+
 
 SEpoints = np.zeros([lines.shape[0],lines.shape[2],2])
 
-for i in range (0, lines.shape[0] - 1):
+for i in range (0, 7): #lines.shape[0] - 1):
     for rho,theta in lines[i]:
         a = np.cos(theta)
         b = np.sin(theta)
@@ -43,10 +73,6 @@ for i in range (0, lines.shape[0] - 1):
 
         SEpoints[i][0] = ([x1,y1])
         SEpoints[i][1] = ([x2,y2])
-
-
-        test = np.array([[[1,2],[3,4]], [[5,6],[7,8]]])
-        test = np.delete(test, 1, 0)
 
         cv2.line(lineimg,(x1,y1),(x2,y2),(0,0,255),2)
 
