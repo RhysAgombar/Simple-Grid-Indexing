@@ -38,6 +38,7 @@ ttolerance = 0.25
 shape = lines.shape[0]
 i = 0
 
+#------ Similar Line Deletion ------
 while (i < shape):
     j = 0
     while (j < shape):
@@ -47,8 +48,11 @@ while (i < shape):
         diffr = abs(lines[i][0][0] - rho)
         difft = abs(lines[i][0][1] - theta)
 
+        # If lines are the same, do nothing
         if (lines[i][0][0] == rho and lines[i][0][1] == theta):
             j = j
+            
+        # If lines are similar, delete
         elif (diffr < rtolerance):
             if (difft < ttolerance):
                 lines = np.delete(lines, j, 0)
@@ -57,6 +61,8 @@ while (i < shape):
         j+=1
     i+=1
 
+
+#------ Calculating Lines ------
 SEpoints = np.zeros([lines.shape[0],lines.shape[2],2])
 
 for i in range (0, lines.shape[0] - 1):
@@ -76,6 +82,7 @@ for i in range (0, lines.shape[0] - 1):
 
         cv2.line(lineimg,(x1,y1),(x2,y2),(0,0,255),2)
 
+#------ Sorting lines into horizontal or vertical sections ------
 vert = []
 horiz = []
 
@@ -87,23 +94,23 @@ for i in range (0, lines.shape[0] - 1):
     else:
         vert.append(lines[i])   
 
+
+#sort is fucked.
 vert = np.array(vert)
-vert = np.sort(vert, axis=-1, kind='quicksort', order=None)
+vert = np.sort(vert, axis=-1, kind='mergesort', order=None)
 horiz = np.array(horiz)
-horiz = np.sort(horiz, axis=-1, kind='quicksort', order=None)
+horiz = np.sort(horiz, axis=-1, kind='mergesort', order=None)
 
 
 vsize = vert.shape[0]
 hsize = horiz.shape[0]
 lsize = vsize + hsize
 
-lines = np.zeros([lsize,2])
-
 for i in range (0, vert.shape[0]):
-    lines[i] = vert[i]
+    lines[i][0] = vert[i]
 
 for i in range (0, horiz.shape[0]):
-    lines[i + vert.shape[0]] = horiz[i]
+    lines[i + vert.shape[0]][0] = horiz[i]
 
 #ntr = np.zeros([SEpoints.shape[0]*SEpoints.shape[0],2])
 
