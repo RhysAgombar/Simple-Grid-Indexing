@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+import time
+
 
 def perp( a ) :
     b = np.empty_like(a)
@@ -18,17 +20,20 @@ def intersection(a1,a2, b1,b2) :
     num = np.dot( dap, dp )
     return (num / denom)*db + b1
 
+start_time = time.time()
+img = cv2.imread('images\GridClose2.jpg')
 
-img = cv2.imread('grido.png')
+edges = cv2.Canny(img,50,100,apertureSize = 3)
 
-edges = cv2.Canny(img,50,300,apertureSize = 3)
+cv2.imshow('edges',edges)
+
 
 lineimg = np.zeros([img.shape[0],img.shape[1],img.shape[2]])
 
-lines = cv2.HoughLines(edges,2,np.pi/180,250)
+lines = cv2.HoughLines(edges,2,np.pi/180,500)
 
-rtolerance = 30
-#ttolerance = 250
+rtolerance = 20
+ttolerance = 0.25
 
 shape = lines.shape[0]
 i = 0
@@ -40,26 +45,21 @@ while (i < shape):
         theta = lines[j][0][1]
 
         diffr = abs(lines[i][0][0] - rho)
+        difft = abs(lines[i][0][1] - theta)
 
         if (lines[i][0][0] == rho and lines[i][0][1] == theta):
             j = j
         elif (diffr < rtolerance):
-            lines = np.delete(lines, j, 0)
-            shape-=1
-            j-=1
-            
+            if (difft < ttolerance):
+                lines = np.delete(lines, j, 0)
+                shape-=1
+                j-=1
         j+=1
     i+=1
 
-
-for i in range (0, lines.shape[0]):
-    print lines[i]
-
-
-
 SEpoints = np.zeros([lines.shape[0],lines.shape[2],2])
 
-for i in range (0, 7): #lines.shape[0] - 1):
+for i in range (0, lines.shape[0] - 1):
     for rho,theta in lines[i]:
         a = np.cos(theta)
         b = np.sin(theta)
@@ -76,43 +76,36 @@ for i in range (0, 7): #lines.shape[0] - 1):
 
         cv2.line(lineimg,(x1,y1),(x2,y2),(0,0,255),2)
 
-#tolerance = 200
-#
-#for s1, e1 in SEpoints:
-#    index = 0
-#    for s2, e2 in SEpoints:
-#        diffs = abs(s2 - s1)
-#        diffe = abs(e2 - e1)
-#
-#        if (np.array_equal(diffs,[0,0]) == False and np.array_equal(diffe,[0,0]) == False):
-#            if (diffs[0] < tolerance):
-#                SEpoints = np.delete(SEpoints,index, 0)
-#                break
-#            if (diffs[1] < tolerance):
-#                SEpoints = np.delete(SEpoints,index, 0)
-#                break
-#                
-#            if (diffe[0] < tolerance):
-#                SEpoints = np.delete(SEpoints,index, 0)
-#                break
-#            if (diffe[1] < tolerance):
-#                SEpoints = np.delete(SEpoints,index, 0)
-#                break
-#
-#        index += 1
-            
+vert = []
+horiz = []
 
-#for x1,y1,x2,y2 in SEpoints:
-#    for index, (x3,y3,x4,y4) in enumerate(SEpoints):
-#        if y1==y2 and y3==y4: # Horizontal Lines
-#            diff = abs(y1-y3)
-#        elif x1==x2 and x3==x4: # Vertical Lines
-#            diff = abs(x1-x3)
-#        else:
-#            diff = 0
-#
-#        if diff < 10 and diff is not 0:
-#            del SEpoints[index]
+for i in range (0, lines.shape[0] - 1):
+    difft = abs((np.pi/2) - lines[i][0][1])
+    difftN = abs((np.pi*1.5) - lines[i][0][1])
+    if (difft < np.pi/4 or difftN < np.pi/4):
+        horiz.append(lines[i])
+    else:
+        vert.append(lines[i])   
+
+vert = np.array(vert)
+vert = np.sort(vert, axis=-1, kind='quicksort', order=None)
+horiz = np.array(horiz)
+horiz = np.sort(horiz, axis=-1, kind='quicksort', order=None)
+
+
+vsize = vert.shape[0]
+hsize = horiz.shape[0]
+lsize = vsize + hsize
+
+lines = np.zeros([lsize,2])
+
+for i in range (0, vert.shape[0]):
+    lines[i] = vert[i]
+
+for i in range (0, horiz.shape[0]):
+    lines[i + vert.shape[0]] = horiz[i]
+
+#ntr = np.zeros([SEpoints.shape[0]*SEpoints.shape[0],2])
 
 for i in range (0, SEpoints.shape[0] - 1):
     for j in range (0, SEpoints.shape[0] - 1):
@@ -120,8 +113,11 @@ for i in range (0, SEpoints.shape[0] - 1):
             ntr = intersection(SEpoints[i][0],SEpoints[i][1],SEpoints[j][0],SEpoints[j][1])
 
             if (ntr[0] != np.inf and ntr[1] != np.inf):
+                i = i
                 cv2.circle(lineimg,(int(ntr[0]),int(ntr[1])), 5, (0,255,0), -1)
 
 
 cv2.imshow('Lines',lineimg)
 cv2.imshow('img',img)
+
+print("--- %s seconds ---" % (time.time() - start_time))
