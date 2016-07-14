@@ -61,11 +61,58 @@ while (i < shape):
         j+=1
     i+=1
 
+#------ Sorting lines into horizontal or vertical sections ------
+vert = []
+horiz = []
+
+for i in range (0, lines.shape[0] - 1):
+    difft = abs((np.pi/2) - lines[i][0][1])
+    difftN = abs((np.pi*1.5) - lines[i][0][1])
+    if (difft < np.pi/4 or difftN < np.pi/4):
+        horiz.append(lines[i][0])
+    else:
+        vert.append(lines[i][0])   
+
+
+vert = np.array(vert)
+vert.dtype = [('x', np.float32), ('m', np.float32)]
+print "Unsorted V"
+print vert
+vert = np.sort(vert, axis=0, kind='mergesort', order=['x'])
+print "Sorted V"
+print vert
+horiz = np.array(horiz)
+horiz.dtype = [('x', np.float32), ('m', np.float32)]
+print "Unsorted H"
+print horiz
+horiz = np.sort(horiz, axis=0, kind='mergesort', order=['x'])
+print "Sorted H"
+print horiz
+
+vsize = vert.shape[0]
+hsize = horiz.shape[0]
+lsize = vsize + hsize
+
+lines = np.zeros([vert.shape[0]+horiz.shape[0],2])
+
+for i in range (0, vert.shape[0]):
+    lines[i][0] = vert[i]['x']
+    lines[i][1] = vert[i]['m']
+
+for i in range (0, horiz.shape[0]):
+    lines[i + vert.shape[0]][0] = horiz[i]['x']
+    lines[i + vert.shape[0]][1] = horiz[i]['m']
+
+#ntr = np.zeros([SEpoints.shape[0]*SEpoints.shape[0],2])
+
+
+## Carry the fix through. Switch to 2d array
+
 
 #------ Calculating Lines ------
 SEpoints = np.zeros([lines.shape[0],lines.shape[2],2])
 
-for i in range (0, lines.shape[0] - 1):
+for i in range (0, 30): #lines.shape[0] - 1):
     for rho,theta in lines[i]:
         a = np.cos(theta)
         b = np.sin(theta)
@@ -82,38 +129,7 @@ for i in range (0, lines.shape[0] - 1):
 
         cv2.line(lineimg,(x1,y1),(x2,y2),(0,0,255),2)
 
-#------ Sorting lines into horizontal or vertical sections ------
-vert = []
-horiz = []
-
-for i in range (0, lines.shape[0] - 1):
-    difft = abs((np.pi/2) - lines[i][0][1])
-    difftN = abs((np.pi*1.5) - lines[i][0][1])
-    if (difft < np.pi/4 or difftN < np.pi/4):
-        horiz.append(lines[i])
-    else:
-        vert.append(lines[i])   
-
-
-#sort is fucked.
-vert = np.array(vert)
-vert = np.sort(vert, axis=-1, kind='mergesort', order=None)
-horiz = np.array(horiz)
-horiz = np.sort(horiz, axis=-1, kind='mergesort', order=None)
-
-
-vsize = vert.shape[0]
-hsize = horiz.shape[0]
-lsize = vsize + hsize
-
-for i in range (0, vert.shape[0]):
-    lines[i][0] = vert[i]
-
-for i in range (0, horiz.shape[0]):
-    lines[i + vert.shape[0]][0] = horiz[i]
-
-#ntr = np.zeros([SEpoints.shape[0]*SEpoints.shape[0],2])
-
+#------ Calculating Intersections ------
 for i in range (0, SEpoints.shape[0] - 1):
     for j in range (0, SEpoints.shape[0] - 1):
         if (np.array_equal(SEpoints[i], SEpoints[j]) == False):
